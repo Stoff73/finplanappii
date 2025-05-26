@@ -26,10 +26,11 @@ const Home = () => {
                             Start by having a conversation with our AI assistant.
                         </p>
                     )}
-                    <div id="buttonMove">
-                    <p><a href="/chat" className="btn-primary mt-4">
-                        Get Started
-                        </a></p>
+                    
+                    <div id="buttonMove" className="mt-6 pb-6">
+                        <a href="/chat" className="btn-primary">
+                            Get Started
+                        </a>
                     </div>
                 </div>
             </div>

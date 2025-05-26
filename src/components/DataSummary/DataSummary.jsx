@@ -66,8 +66,8 @@ const DataSummary = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-2 grid-rows-2 gap-x-8 gap-y-8">
                 {summaryCards.map((card, index) => (
-                    <div key={index} className="card text-center flex flex-col items-center p-6 min-w-[12rem] min-h-[14rem]">
-                        <div className={`${card.bgColor} rounded-button flex items-center justify-center p-6 mb-4 min-w-[6rem] min-h-[6rem]`}>
+                    <div key={index} className="card text-center flex flex-col items-center p-6 min-h-[14rem]">
+                        <div className={`${card.bgColor} rounded-button flex items-center justify-center p-6 mb-4 min-h-[6rem]`}>
                             <card.icon className={`icon-standard ${card.iconColor}`} />
                         </div>
                         <div className="text-financial font-bold text-primary-dark">{card.count}</div>
@@ -76,19 +76,10 @@ const DataSummary = () => {
                 ))}
             </div>
 
+
+
             {/* Insights */}
-            {insights.length > 0 && (
-                <div className="card">
-                    <h3 className="text-h4 font-semibold text-primary-dark mb-16">Key Insights</h3>
-                    <div className="item-spacing">
-                        {insights.map((insight, index) => (
-                            <div key={index} className="p-16 bg-secondary-blue-pale rounded-button">
-                                <p className="text-body text-primary-blue">{insight.message}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {/* Removed key insights box to avoid duplication */}
         </div>
     );
 };

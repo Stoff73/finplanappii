@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, AlertCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import openAIService from '../../services/openai';
 
 const ChatInterface = () => {
     const { messages, addMessage } = useApp();
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
-    const [hasInitialized, setHasInitialized] = useState(false);
+    const [error, setError] = useState(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -17,42 +18,60 @@ const ChatInterface = () => {
         scrollToBottom();
     }, [messages]);
 
-    // Add initial message ONLY if no messages exist AND we haven't initialized yet
+    // Add initial message if none exist
     useEffect(() => {
-        if (!hasInitialized) {
-            setHasInitialized(true);
-
-            // Only add initial message if there are truly no messages
-            if (messages.length === 0) {
-                addMessage({
-                    type: 'ai',
-                    content: 'Hello! I\'m your financial planning assistant. How can I help you today?'
-                });
-            }
+        if (messages.length === 0) {
+            addMessage({
+                type: 'ai',
+                content: 'Hello! I\'m your financial planning assistant. I\'m here to help you understand your financial situation and goals. What would you like to discuss today?'
+            });
         }
-    }, [hasInitialized, messages.length, addMessage]);
+    }, [messages.length, addMessage]);
 
     const handleSend = async () => {
         if (!inputMessage.trim()) return;
 
+        // Clear any previous errors
+        setError(null);
+
         // Add user message
+        const userMessage = inputMessage.trim();
         addMessage({
             type: 'user',
-            content: inputMessage.trim()
+            content: userMessage
         });
 
         setInputMessage('');
         setIsTyping(true);
 
-        // Simulate AI response (replace with real API later)
-        setTimeout(() => {
+        try {
+            // Get AI response
+            const result = await openAIService.sendMessage(userMessage, messages);
+
+            if (result.success) {
+                addMessage({
+                    type: 'ai',
+                    content: result.message
+                });
+            } else {
+                addMessage({
+                    type: 'ai',
+                    content: result.message
+                });
+                setError('Connection issue - using fallback response');
+            }
+        } catch (error) {
+            console.error('Chat error:', error);
             addMessage({
                 type: 'ai',
-                content: 'Thanks for your message! This is a simulated response. Real AI integration will come later.'
+                content: 'I\'m experiencing technical difficulties. Please try again in a moment.'
             });
+            setError('Failed to get response');
+        } finally {
             setIsTyping(false);
-        }, 1500);
+        }
     };
+
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
