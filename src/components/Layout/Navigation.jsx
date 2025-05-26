@@ -14,20 +14,20 @@ const Navigation = () => {
     ];
 
     return (
-        <nav className="bg-white border-b border-gray-100">
-            <div className="max-w-7xl mx-auto px-4 md:px-6">
+        <nav className="bg-white border-b">
+            <div className="max-w-7xl mx-auto px-4">
                 <div className="flex space-x-8">
                     {navItems.map(({ path, icon: Icon, label }) => (
                         <Link
                             key={path}
                             to={path}
-                            className={`flex items-center space-x-2 py-4 border-b-2 transition-all duration-200 min-h-11 ${location.pathname === path
-                                    ? 'border-blue-800 text-blue-800 font-semibold'
-                                    : 'border-transparent text-gray-500 font-medium hover:text-gray-900'
+                            className={`flex items-center space-x-2 py-4 border-b-2 transition-colors ${location.pathname === path
+                                    ? 'border-primary-600 text-primary-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
                                 }`}
                         >
-                            <Icon className="w-6 h-6" />
-                            <span className="text-base">{label}</span>
+                            <Icon className="h-5 w-5" />
+                            <span className="font-medium">{label}</span>
                         </Link>
                     ))}
                 </div>

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import dataExtractionService from '../services/dataExtraction';
 
 const AppContext = createContext();
 
@@ -18,52 +19,56 @@ export const AppProvider = ({ children }) => {
     });
 
     const [messages, setMessages] = useState([]);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [extractedData, setExtractedData] = useState({});
+    const [insights, setInsights] = useState([]);
 
     // Load from localStorage on mount
     useEffect(() => {
         try {
             const saved = localStorage.getItem('financialPlanningApp');
-
             if (saved) {
                 const data = JSON.parse(saved);
-
-                if (data.userData) {
-                    setUserData(data.userData);
-                }
-                if (data.messages) {
-                    setMessages(data.messages);
-                }
+                setUserData(data.userData || {});
+                setMessages(data.messages || []);
+                setExtractedData(data.extractedData || {});
+                setInsights(data.insights || []);
             }
         } catch (error) {
             console.error('Error loading data:', error);
-        } finally {
-            setIsLoaded(true);
         }
     }, []);
 
-    // Save to localStorage when data changes (but only after initial load)
+    // Extract data when messages change
     useEffect(() => {
-        if (isLoaded) {
-            try {
-                const dataToSave = {
-                    userData,
-                    messages
-                };
-                localStorage.setItem('financialPlanningApp', JSON.stringify(dataToSave));
-            } catch (error) {
-                console.error('Error saving data:', error);
-            }
+        if (messages.length > 0) {
+            const newExtractedData = dataExtractionService.extractFinancialData(messages);
+            const newInsights = dataExtractionService.generateInsights(newExtractedData);
+
+            setExtractedData(newExtractedData);
+            setInsights(newInsights);
         }
-    }, [userData, messages, isLoaded]);
+    }, [messages]);
+
+    // Save to localStorage when data changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('financialPlanningApp', JSON.stringify({
+                userData,
+                messages,
+                extractedData,
+                insights
+            }));
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+    }, [userData, messages, extractedData, insights]);
 
     const addMessage = (message) => {
-        const newMessage = {
+        setMessages(prev => [...prev, {
             ...message,
             id: Date.now(),
             timestamp: new Date()
-        };
-        setMessages(prev => [...prev, newMessage]);
+        }]);
     };
 
     const updateUserData = (newData) => {
@@ -73,23 +78,21 @@ export const AppProvider = ({ children }) => {
     const clearAllData = () => {
         setUserData({ name: '', goals: [], financialData: {} });
         setMessages([]);
+        setExtractedData({});
+        setInsights([]);
         localStorage.removeItem('financialPlanningApp');
     };
 
-    // Basic completion score calculation
     const getCompletionScore = () => {
-        let score = 0;
-        if (messages.length > 2) score += 25; // Has had conversation
-        if (userData.goals && userData.goals.length > 0) score += 25; // Has goals
-        if (userData.financialData && Object.keys(userData.financialData).length > 0) score += 25; // Has financial data
-        if (messages.length > 5) score += 25; // Extended conversation
-        return Math.min(score, 100);
+        return dataExtractionService.calculateCompletionScore(extractedData);
     };
 
     return (
         <AppContext.Provider value={{
             userData,
             messages,
+            extractedData,
+            insights,
             addMessage,
             updateUserData,
             clearAllData,
@@ -99,4 +102,5 @@ export const AppProvider = ({ children }) => {
         </AppContext.Provider>
     );
 };
+
 
