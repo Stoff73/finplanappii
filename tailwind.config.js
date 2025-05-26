@@ -1,89 +1,60 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
-        },
-        secondary: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
-        },
-        success: {
-          50: '#f0fdf4',
-          500: '#22c55e',
-          600: '#16a34a',
-        },
-        warning: {
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
-        },
-        error: {
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
-        }
+        // Style guide colors
+        'primary-blue': '#1E3A8A',
+        'primary-white': '#FFFFFF',
+        'primary-dark': '#1F2937',
+        'secondary-blue-light': '#3B82F6',
+        'secondary-blue-pale': '#EFF6FF',
+        'secondary-gray': '#6B7280',
+        'accent-green': '#10B981',
+        'accent-green-light': '#34D399',
+        'accent-blue-bright': '#06B6D4',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        'inter': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       fontSize: {
-        '2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+        'h1': ['32px', { lineHeight: '40px' }],
+        'h2': ['28px', { lineHeight: '36px' }],
+        'h3': ['24px', { lineHeight: '32px' }],
+        'h4': ['20px', { lineHeight: '28px' }],
+        'body-large': ['18px', { lineHeight: '28px' }],
+        'body': ['16px', { lineHeight: '24px' }],
+        'body-small': ['14px', { lineHeight: '20px' }],
+        'caption': ['12px', { lineHeight: '16px' }],
+        'financial': ['20px', { lineHeight: '28px' }],
       },
       spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
+        '52': '52px', // Button height
+        '56': '56px', // Input height
+        '64': '64px', // Financial input height
+        '72': '72px', // Navigation height
       },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
+      borderRadius: {
+        'button': '12px',
+        'card': '16px',
+        'card-large': '20px',
+        'input': '12px',
+        'search': '24px',
+        'risk-badge': '6px',
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'soft-lg': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'card': '0 1px 12px rgba(0, 0, 0, 0.06)',
+        'card-financial': '0 2px 16px rgba(0, 0, 0, 0.08)',
+        'card-goal': '0 1px 8px rgba(0, 0, 0, 0.04)',
+        'button': '0 2px 8px rgba(0, 0, 0, 0.12)',
+        'nav': '0 -2px 12px rgba(0, 0, 0, 0.08)',
       },
     },
   },
   plugins: [
-    require('@tailwindcss/forms')({
-      strategy: 'class', // Use class-based strategy
-    }),
-    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
   ],
 }

@@ -1,18 +1,22 @@
 import React from 'react';
+import ChatInterface from '../components/Chat/ChatInterface';
+
 
 const Chat = () => {
     return (
-        <div className="max-w-4xl mx-auto py-12">
-            <h1 className="text-3xl font-bold text-center mb-8">
-                AI Chat
-            </h1>
-            <div className="card">
-                <p className="text-gray-600">
-                    Chat interface will go here.
-                </p>
-            </div>
+        <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">Financial Planning Chat</h1>
+
+           
+
+            <ChatInterface />
         </div>
     );
 };
 
 export default Chat;
+
+
+
+
+
