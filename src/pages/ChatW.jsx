@@ -17,7 +17,9 @@ const Chat = () => {
 
         {/* Key Insights below all three columns */}
         <div className="mt-6 lg:col-span-3">
+          <div className="bg-blue-100 p-4 rounded-xl">
             <KeyInsights />
+          </div>
         </div>
       </div>
     </div>

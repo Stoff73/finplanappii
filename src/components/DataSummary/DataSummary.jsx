@@ -64,7 +64,7 @@ const DataSummary = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-x-8 gap-y-8">
+            <div className="grid grid-cols-2 grid-rows-2 gap-x-4 gap-y-4">
                 {summaryCards.map((card, index) => (
                     <div key={index} className="card text-center flex flex-col items-center p-6 min-h-[14rem]">
                         <div className={`${card.bgColor} rounded-button flex items-center justify-center p-6 mb-4 min-h-[6rem]`}>

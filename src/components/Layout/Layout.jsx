@@ -7,7 +7,7 @@ const Layout = ({ children }) => {
         <div className="min-h-screen bg-background-subtle">
             <Header />
             <Navigation />
-            <main className="max-w-7xl mx-auto screen-margins section-spacing py-32">
+            <main className="max-w-7xl mx-auto screen-margins section-spacing py-12">
                 {children}
             </main>
         </div>

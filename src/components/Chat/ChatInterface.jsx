@@ -1,3 +1,4 @@
+import './ChatInterface.css';
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, AlertCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
@@ -81,7 +82,7 @@ const ChatInterface = () => {
     };
 
     return (
-        <div className="card flex flex-col" style={{ height: '600px' }}>
+        <div className="card flex flex-col flex-grow p-12">
             {/* Chat Header */}
             <div className="flex items-center space-x-3 pb-5 border-b border-gray-200">
                 <div className="w-10 h-10 bg-blue-800 rounded-xl flex items-center justify-center">
@@ -96,7 +97,8 @@ const ChatInterface = () => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto py-5 space-y-3">
+<div className="messages-container">
+            <div className="flex-grow overflow-y-auto px-4 py-2">
                 {messages.map((message) => (
                     <div
                         key={message.id}
@@ -121,7 +123,7 @@ const ChatInterface = () => {
                         </div>
                     </div>
                 ))}
-
+    
                 {isTyping && (
                     <div className="flex justify-start">
                         <div className="flex items-start space-x-3">
@@ -138,12 +140,13 @@ const ChatInterface = () => {
                         </div>
                     </div>
                 )}
-
+    
                 <div ref={messagesEndRef} />
             </div>
+</div>
 
             {/* Input */}
-            <div className="flex space-x-3 pt-5 border-t border-gray-200">
+            <div className="flex space-x-6 pt-1 border-t border-gray-200">
                 <input
                     type="text"
                     value={inputMessage}
