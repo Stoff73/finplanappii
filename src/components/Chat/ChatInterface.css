@@ -1,28 +1,205 @@
-/* Ensure the chat interface container fills the height and uses flex column */
+/* ChatInterface.css */
+
+/* Apply style guide colors and spacing */
 .card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 1px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  padding: 20px;
+}
+
+/* Messages container with proper scrolling */
+.messages-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
-  height: 100%;
-  max-height: 100%;
-  padding: 1.5rem; /* equivalent to p-6 */
-  box-sizing: border-box;
-  overflow: hidden;
+  min-height: 0;
+  margin: 20px 0;
 }
 
-/* Messages container grows and scrolls */
-.card > .messages-container {
-  flex-grow: 1;
+.messages-container>div {
+  flex: 1;
   overflow-y: auto;
-  padding: 0.5rem 1rem; /* px-4 py-2 */
+  padding-right: 8px;
+  scroll-behavior: smooth;
 }
 
-/* Input container fixed height and aligned at bottom */
-.input-container {
+/* Custom scrollbar */
+.messages-container>div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container>div::-webkit-scrollbar-track {
+  background: #F3F4F6;
+  border-radius: 3px;
+}
+
+.messages-container>div::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+.messages-container>div::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Message bubbles styling */
+.messages-container .flex {
+  margin-bottom: 16px;
+}
+
+.messages-container .flex:last-child {
+  margin-bottom: 8px;
+}
+
+/* Input styling following style guide */
+.input-standard {
+  height: 56px;
+  border-radius: 12px;
+  border: 1.5px solid #6B7280;
+  background: #FFFFFF;
+  color: #1F2937;
+  padding: 0 16px;
+  font-size: 16px;
+  line-height: 24px;
+  transition: border-color 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.input-standard:focus {
+  outline: none;
+  border-color: #1E3A8A;
+  border-width: 2px;
+}
+
+.input-standard::placeholder {
+  color: #6B7280;
+}
+
+/* Button styling following style guide */
+.btn-primary {
+  background: #1E3A8A;
+  color: #FFFFFF;
+  height: 52px;
+  border-radius: 12px;
+  padding: 0 20px;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3B82F6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.16);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.96);
+  box-shadow: 0 1px 4px rgba(30, 58, 138, 0.12);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Message bubble enhancements */
+.user-message {
+  background: #1E3A8A;
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 320px;
+  word-wrap: break-word;
+}
+
+.ai-message {
+  background: #F9FAFB;
+  color: #1F2937;
+  border-radius: 12px;
+  padding: 12px 16px;
+  max-width: 320px;
+  word-wrap: break-word;
+  border: 1px solid #F3F4F6;
+}
+
+/* Avatar styling */
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
   display: flex;
-  gap: 1.5rem; /* space-x-6 */
-  padding-top: 0.25rem; /* pt-1 */
-  border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
-  min-height: 56px; /* fixed height */
-  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-user {
+  background: #1E3A8A;
+}
+
+.avatar-ai {
+  background: #6B7280;
+}
+
+/* Typing indicator animation */
+@keyframes bounce {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .user-message,
+  .ai-message {
+    max-width: 280px;
+    padding: 10px 14px;
+  }
+
+  .input-standard {
+    height: 48px;
+    font-size: 16px;
+    /* Prevent zoom on iOS */
+  }
+
+  .btn-primary {
+    height: 48px;
+    padding: 0 16px;
+    min-width: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .user-message,
+  .ai-message {
+    max-width: 240px;
+  }
 }
