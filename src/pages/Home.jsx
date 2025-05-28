@@ -53,6 +53,7 @@ const Home = () => {
                     <h2 className="text-xl font-semibold mb-2">Next version features MVP 1.1</h2>
                     <ul>
                         <li>Custom GPT/multi agent setup</li>
+                        <li>AI caht window ifno parsing, so we can get rid of matching for plan update</li>
                         <li>Goal based planning, with cashflow and net worth, dynamic</li>
                         <li>Integrated intelligent factfind modal for ease of entering data</li>
                         <li>Full formatted financial plan export to pdf</li>

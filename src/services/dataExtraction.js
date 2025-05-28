@@ -32,11 +32,22 @@ class DataExtractionService {
                 // Extract expense information with specific text
                 const expenseData = this.extractExpenseData(content, lowerContent);
                 if (expenseData) {
-                    extractedData.expenses.push({
-                        ...expenseData,
-                        timestamp: message.timestamp || Date.now(),
-                        category: 'expense'
-                    });
+                    // Handle multiple expenses in one message
+                    if (Array.isArray(expenseData)) {
+                        expenseData.forEach(expense => {
+                            extractedData.expenses.push({
+                                ...expense,
+                                timestamp: message.timestamp || Date.now(),
+                                category: 'expense'
+                            });
+                        });
+                    } else {
+                        extractedData.expenses.push({
+                            ...expenseData,
+                            timestamp: message.timestamp || Date.now(),
+                            category: 'expense'
+                        });
+                    }
                 }
 
                 // Extract goals with specific text
@@ -85,36 +96,48 @@ class DataExtractionService {
 
     extractIncomeData(content, lowerContent) {
         const incomePatterns = [
-            // "I earn 45k per year" -> "£45,000 per year income"
-            /i\s*(earn|make|get\s*paid)\s*([£$]?\s*\d+[k]?)\s*(per\s*year|annually|a\s*year)?/i,
+            // "I earn 55k" or "I earn 55k at my job" -> "£55,000 per year employment income"
+            /i\s*(earn|make|get\s*paid)\s*([£$]?\s*\d+[k]?)\s*(?:per\s*year|annually|a\s*year)?\s*(?:at\s*my\s*job|from\s*work|employment|salary)?/i,
             // "my salary is 60000" -> "£60,000 salary"
             /(?:my\s*)?salary\s*(?:is|of)\s*([£$]?\s*\d+[k]?)/i,
-            // "income of 50k" -> "£50,000 income"
+            // "income of 50k" -> "£50,000 income"  
             /income\s*(?:of|is)\s*([£$]?\s*\d+[k]?)/i,
-            // "45k income" -> "£45,000 income"
-            /([£$]?\s*\d+[k]?)\s*(?:per\s*year\s*)?income/i
+            // "55k income" -> "£55,000 income"
+            /([£$]?\s*\d+[k]?)\s*(?:per\s*year\s*)?(?:annual\s*)?income/i,
+            // "I make 45k per year" -> "£45,000 per year income"
+            /i\s*make\s*([£$]?\s*\d+[k]?)\s*(?:per\s*year|annually|a\s*year)?/i
         ];
 
         for (const pattern of incomePatterns) {
             const match = content.match(pattern);
             if (match) {
+                console.log('Income pattern matched:', match[0]); // Debug log
                 const amounts = this.extractAmounts(match[0]);
+                console.log('Income extracted amounts:', amounts); // Debug log
+
                 if (amounts.length > 0) {
                     const amount = amounts[0];
                     let text = `£${amount.toLocaleString()}`;
 
-                    // Add frequency if mentioned
-                    if (/per\s*year|annually|a\s*year/i.test(match[0])) {
+                    // Add frequency - default to per year for income
+                    if (/per\s*year|annually|a\s*year/i.test(match[0]) || amount > 10000) {
                         text += ' per year';
+                    } else if (/per\s*month|monthly/i.test(match[0])) {
+                        text += ' per month';
+                    } else {
+                        text += ' per year'; // Default assumption for income
                     }
 
                     // Add type
                     if (/salary/i.test(match[0])) {
                         text += ' salary';
+                    } else if (/job|work|employment/i.test(match[0])) {
+                        text += ' employment income';
                     } else {
                         text += ' income';
                     }
 
+                    console.log('Returning income data:', { text, amounts: [amount], rawText: match[0] }); // Debug log
                     return {
                         text: text,
                         amounts: [amount],
@@ -128,56 +151,109 @@ class DataExtractionService {
     }
 
     extractExpenseData(content, lowerContent) {
+        const expenses = [];
+
         const expensePatterns = [
+            // "rent is 2300" or "rent is 2,300 per month" -> "£2,300 per month rent"
+            /rent\s*(?:costs|is)\s*([£$]?\s*\d+[,\d]*)\s*(?:per\s*month|monthly)?/gi,
+            // "mortgage of 1800" -> "£1,800 mortgage"  
+            /mortgage\s*(?:of|is|costs)\s*([£$]?\s*\d+[,\d]*)/gi,
+            // "500 spent on beer" or "spend 500 on entertainment" -> "£500 entertainment"
+            /(?:spend|spent)\s*([£$]?\s*\d+[,\d]*)\s*on\s*(\w+)/gi,
             // "I spend 30k per year" -> "£30,000 per year expenses"
-            /i\s*spend\s*([£$]?\s*\d+[k]?)\s*(per\s*year|annually|a\s*year)?/i,
+            /i\s*spend\s*([£$]?\s*\d+[k]?)\s*(per\s*year|annually|a\s*year)/gi,
             // "my expenses are 2500 per month" -> "£2,500 per month expenses"
-            /(?:my\s*)?expenses\s*(?:are|of)\s*([£$]?\s*\d+[k]?)\s*(per\s*month|monthly)?/i,
-            // "rent costs 1200" -> "£1,200 rent"
-            /rent\s*(?:costs|is)\s*([£$]?\s*\d+[k]?)/i,
-            // "mortgage of 1800" -> "£1,800 mortgage"
-            /mortgage\s*(?:of|is|costs)\s*([£$]?\s*\d+[k]?)/i
+            /(?:my\s*)?expenses\s*(?:are|of)\s*([£$]?\s*\d+[k]?)\s*(per\s*month|monthly)/gi,
+            // "costs 55k" -> "£55,000 expenses"
+            /costs?\s*([£$]?\s*\d+[k]?)/gi,
+            // "outgoings of 30k" -> "£30,000 expenses"
+            /outgoings?\s*(?:of|are)\s*([£$]?\s*\d+[k]?)/gi
         ];
 
-        for (const pattern of expensePatterns) {
-            const match = content.match(pattern);
-            if (match) {
+        // Process each pattern
+        expensePatterns.forEach((pattern, patternIndex) => {
+            let match;
+            while ((match = pattern.exec(content)) !== null) {
+                console.log('Expense pattern matched:', match[0]); // Debug log
                 const amounts = this.extractAmounts(match[0]);
+                console.log('Extracted amounts:', amounts); // Debug log
+
                 if (amounts.length > 0) {
                     const amount = amounts[0];
                     let text = `£${amount.toLocaleString()}`;
+                    let category = 'expenses';
 
                     // Add frequency if mentioned
                     if (/per\s*year|annually|a\s*year/i.test(match[0])) {
                         text += ' per year';
-                    } else if (/per\s*month|monthly/i.test(match[0])) {
+                    } else if (/per\s*month|monthly/i.test(match[0]) || /rent|mortgage/i.test(match[0])) {
                         text += ' per month';
                     }
 
-                    // Add type
+                    // Add specific type based on pattern
                     if (/rent/i.test(match[0])) {
                         text += ' rent';
+                        category = 'housing';
                     } else if (/mortgage/i.test(match[0])) {
                         text += ' mortgage';
+                        category = 'housing';
+                    } else if (match[2]) { // Pattern with "spent on X"
+                        const expenseType = this.categorizeExpenseType(match[2]);
+                        text += ` ${expenseType}`;
+                        category = expenseType;
                     } else {
                         text += ' expenses';
                     }
 
-                    return {
+                    console.log('Adding expense:', { text, amounts: [amount], rawText: match[0], category }); // Debug log
+                    expenses.push({
                         text: text,
                         amounts: [amount],
-                        rawText: match[0]
-                    };
+                        rawText: match[0],
+                        category: category
+                    });
                 }
             }
+        });
+
+        return expenses.length > 0 ? expenses : null;
+    }
+
+    categorizeExpenseType(expenseDescription) {
+        const lower = expenseDescription.toLowerCase();
+
+        // Entertainment/Social
+        if (/beer|alcohol|drinks|entertainment|fun|leisure|movies|cinema|netflix|spotify|subscriptions/.test(lower)) {
+            return 'entertainment';
         }
 
-        return null;
+        // Food
+        if (/food|groceries|eating|restaurant|takeaway|coffee|lunch|dinner/.test(lower)) {
+            return 'food';
+        }
+
+        // Transport
+        if (/transport|car|petrol|gas|fuel|bus|train|uber|taxi|parking/.test(lower)) {
+            return 'transport';
+        }
+
+        // Utilities
+        if (/utilities|electric|gas|water|internet|phone|mobile/.test(lower)) {
+            return 'utilities';
+        }
+
+        // Shopping
+        if (/shopping|clothes|clothing|amazon|retail/.test(lower)) {
+            return 'shopping';
+        }
+
+        // Default
+        return expenseDescription || 'other expenses';
     }
 
     extractGoalData(content, lowerContent) {
         const goalPatterns = [
-            // "I want to retire at 55" -> "Retire at 55"
+            // "I want to retire at 65" -> "Retire at 65"
             /i\s*want\s*to\s*retire\s*(?:at|by)\s*(\d+)/i,
             // "retire at 60" -> "Retire at 60"
             /retire\s*(?:at|by)\s*(\d+)/i,
@@ -194,6 +270,7 @@ class DataExtractionService {
         for (const pattern of goalPatterns) {
             const match = content.match(pattern);
             if (match) {
+                console.log('Goal pattern matched:', match[0]); // Debug log
                 let text = '';
 
                 if (/retire/i.test(match[0])) {
@@ -215,6 +292,7 @@ class DataExtractionService {
                 const amounts = this.extractAmounts(match[0]);
                 const goalTypes = this.categorizeGoal(match[0]);
 
+                console.log('Returning goal data:', { text, type: goalTypes, amounts, rawText: match[0] }); // Debug log
                 return {
                     text: text,
                     type: goalTypes,
@@ -344,7 +422,8 @@ class DataExtractionService {
             /(\d+)\s*thousand/g,
             /(\d+)\s*million/g,
             /\$\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/g,
-            /(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:dollars)/g
+            /(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:dollars)/g,
+            /(\d+(?:,\d{3})*)/g // Generic number pattern - keep last
         ];
 
         const amounts = [];
@@ -510,4 +589,3 @@ class DataExtractionService {
 }
 
 export default new DataExtractionService();
-  

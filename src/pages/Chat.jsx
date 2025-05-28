@@ -3,6 +3,8 @@ import ChatInterface from '../components/Chat/ChatInterface';
 import DataSummary from '../components/DataSummary/DataSummary';
 import KeyInsights from '../components/DataSummary/KeyInsights';
 import ProfileCompletion from '../components/DataSummary/ProfileCompletion';
+import DebugPanel from '../components/DebugPanel';
+
 
 const Chat = () => {
   return (
@@ -25,6 +27,10 @@ const Chat = () => {
         {/* Data Summary Cards - Full width below chat (moved up) */}
         <div className="lg:col-span-3">
           <DataSummary />
+        </div>
+
+        <div className="lg:col-span-3">
+          <DebugPanel />
         </div>
 
         {/* Progress Bar - Full width below data summary (moved down) */}

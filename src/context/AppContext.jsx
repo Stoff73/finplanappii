@@ -58,15 +58,26 @@ export const AppProvider = ({ children }) => {
         }
     }, []);
 
-    // Extract data when messages change
+    // Extract data when messages change - with debugging
     useEffect(() => {
         if (messages.length > 0) {
             try {
-                const newExtractedData = dataExtractionService.extractFinancialData(messages);
-                const newInsights = dataExtractionService.generateInsights(newExtractedData);
+                console.log('Processing messages for data extraction:', messages.length);
 
-                setExtractedData(newExtractedData);
-                setInsights(newInsights);
+                // Get only user messages for extraction
+                const userMessages = messages.filter(msg => msg.type === 'user');
+                console.log('User messages found:', userMessages.length);
+
+                if (userMessages.length > 0) {
+                    const newExtractedData = dataExtractionService.extractFinancialData(messages);
+                    console.log('Extracted data result:', newExtractedData);
+
+                    const newInsights = dataExtractionService.generateInsights(newExtractedData);
+                    console.log('Generated insights:', newInsights);
+
+                    setExtractedData(newExtractedData);
+                    setInsights(newInsights);
+                }
             } catch (error) {
                 console.error('Error extracting data:', error);
             }
@@ -76,12 +87,15 @@ export const AppProvider = ({ children }) => {
     // Save to localStorage when data changes
     useEffect(() => {
         try {
-            localStorage.setItem('financialPlanningApp', JSON.stringify({
+            const dataToSave = {
                 userData,
                 messages,
                 extractedData,
-                insights
-            }));
+                insights,
+                lastUpdated: new Date().toISOString()
+            };
+            console.log('Saving data to localStorage:', dataToSave);
+            localStorage.setItem('financialPlanningApp', JSON.stringify(dataToSave));
         } catch (error) {
             console.error('Error saving data:', error);
         }
@@ -95,7 +109,12 @@ export const AppProvider = ({ children }) => {
             timestamp: new Date().toISOString()
         };
 
-        setMessages(prev => [...prev, newMessage]);
+        console.log('Adding message:', newMessage);
+        setMessages(prev => {
+            const updated = [...prev, newMessage];
+            console.log('Updated messages array:', updated);
+            return updated;
+        });
     }, []);
 
     const updateUserData = useCallback((newData) => {
@@ -104,6 +123,7 @@ export const AppProvider = ({ children }) => {
 
     // Enhanced clearAllData function
     const clearAllData = useCallback(() => {
+        console.log('Clearing all data');
         setUserData({ name: '', goals: [], financialData: {} });
         setMessages([]);
         setExtractedData({
@@ -126,15 +146,31 @@ export const AppProvider = ({ children }) => {
 
     const getCompletionScore = useCallback(() => {
         try {
-            return dataExtractionService.calculateCompletionScore(extractedData);
+            const score = dataExtractionService.calculateCompletionScore(extractedData);
+            console.log('Completion score calculated:', score, 'for data:', extractedData);
+            return score;
         } catch (error) {
             console.error('Error calculating completion score:', error);
             return 0;
         }
     }, [extractedData]);
 
+    // Force re-extraction function for debugging
+    const forceDataExtraction = useCallback(() => {
+        console.log('Force re-extracting data from messages:', messages);
+        if (messages.length > 0) {
+            const newExtractedData = dataExtractionService.extractFinancialData(messages);
+            const newInsights = dataExtractionService.generateInsights(newExtractedData);
+
+            console.log('Force extraction result:', newExtractedData);
+            setExtractedData(newExtractedData);
+            setInsights(newInsights);
+        }
+    }, [messages]);
+
     // Additional helper function for manual data updates (used by DataSummary component)
     const updateExtractedData = useCallback((newData) => {
+        console.log('Manually updating extracted data:', newData);
         setExtractedData(newData);
 
         // Also update insights when data is manually updated
@@ -167,7 +203,8 @@ export const AppProvider = ({ children }) => {
 
         // Additional functions for better integration
         updateExtractedData,
-        getInsights
+        getInsights,
+        forceDataExtraction // For debugging
     };
 
     return (
