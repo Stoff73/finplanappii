@@ -1,8 +1,7 @@
 import React from 'react';
 import ChatInterface from '../components/Chat/ChatInterface';
 import DataSummary from '../components/DataSummary/DataSummary';
-import KeyInsights from '../components/DataSummary/KeyInsights';
-import ProfileCompletion from '../components/DataSummary/ProfileCompletion';
+import DynamicPlanning from '../components/Planning/DynamicPlanning';
 import DebugPanel from '../components/DebugPanel';
 
 
@@ -17,26 +16,20 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Key Insights - Now on the right side (was DataSummary before) */}
+        {/* Dynamic Planning - Now on the right side (replaces KeyInsights) */}
         <div className="lg:col-span-1">
           <div className="lg:max-h-[700px] lg:overflow-y-auto lg:pr-2">
-            <KeyInsights />
+            <DynamicPlanning />
           </div>
         </div>
 
-        {/* Data Summary Cards - Full width below chat (moved up) */}
+        {/* Data Summary Cards - Full width below chat */}
         <div className="lg:col-span-3">
           <DataSummary />
         </div>
+        <DebugPanel />
 
-        <div className="lg:col-span-3">
-          <DebugPanel />
-        </div>
-
-        {/* Progress Bar - Full width below data summary (moved down) */}
-        <div className="lg:col-span-3">
-          <ProfileCompletion />
-        </div>
+       
       </div>
     </div>
   );

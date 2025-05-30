@@ -1,99 +1,182 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import dataExtractionService from '../services/dataExtraction';
+import { Code, ChevronDown, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 const DebugPanel = () => {
-    const { messages, extractedData, addMessage } = useApp();
-    const [testInput, setTestInput] = useState('I earn 55k at my job, rent is 2,300 per month, 500 spent on beer and I want to retire at 65');
+    const { messages, extractedData, getCompletionScore, debugInfo } = useApp();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [showRawData, setShowRawData] = useState(false);
 
-    const handleTestExtraction = () => {
-        // Add the test message
-        addMessage({
-            type: 'user',
-            content: testInput
-        });
-    };
+    const completionScore = getCompletionScore();
 
-    const handleDirectTest = () => {
-        // Test the extraction service directly
-        const testMessages = [
-            { type: 'user', content: testInput, timestamp: Date.now() }
-        ];
+    // Only show in development or when there's data to debug
+    const shouldShow = process.env.NODE_ENV === 'development' || messages.length > 0;
 
-        const result = dataExtractionService.extractFinancialData(testMessages);
-        console.log('Direct extraction test result:', result);
-        alert('Check console for direct extraction results');
-    };
+    if (!shouldShow) return null;
 
     return (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-4">🐛 Debug Panel</h3>
+        <div className="card">
+            <div
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                        <Code className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-900">Debug Panel</h3>
+                        <p className="text-sm text-gray-500">Financial data extraction testing</p>
+                    </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-600">
+                        {completionScore}% complete
+                    </span>
+                    {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                    ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                    )}
+                </div>
+            </div>
 
-            {/* Current State */}
-            <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <div className="bg-white p-3 rounded border">
-                    <h4 className="font-medium text-gray-900 mb-2">Messages ({messages.length})</h4>
-                    <div className="text-xs text-gray-600 max-h-32 overflow-y-auto">
-                        {messages.map((msg, idx) => (
-                            <div key={idx} className="mb-1">
-                                <strong>{msg.type}:</strong> {msg.content?.substring(0, 50)}...
+            {isExpanded && (
+                <div className="mt-6 space-y-6">
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-3">
+                            <div className="text-sm font-medium text-blue-700">Messages</div>
+                            <div className="text-2xl font-bold text-blue-900">{messages.length}</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3">
+                            <div className="text-sm font-medium text-green-700">Income Items</div>
+                            <div className="text-2xl font-bold text-green-900">{extractedData.income?.length || 0}</div>
+                        </div>
+                        <div className="bg-red-50 rounded-lg p-3">
+                            <div className="text-sm font-medium text-red-700">Expenses</div>
+                            <div className="text-2xl font-bold text-red-900">{extractedData.expenses?.length || 0}</div>
+                        </div>
+                        <div className="bg-purple-50 rounded-lg p-3">
+                            <div className="text-sm font-medium text-purple-700">Goals</div>
+                            <div className="text-2xl font-bold text-purple-900">{extractedData.goals?.length || 0}</div>
+                        </div>
+                    </div>
+
+                    {/* Data Quality Check */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 mb-3">Data Quality</h4>
+                        <div className="space-y-2">
+                            {extractedData.income?.length > 0 && (
+                                <div className="text-sm">
+                                    <span className="text-green-600">✓</span> Income data detected
+                                </div>
+                            )}
+                            {extractedData.expenses?.length > 0 && (
+                                <div className="text-sm">
+                                    <span className="text-green-600">✓</span> Expense data detected
+                                </div>
+                            )}
+                            {extractedData.goals?.length > 0 && (
+                                <div className="text-sm">
+                                    <span className="text-green-600">✓</span> Goals detected
+                                </div>
+                            )}
+                            {extractedData.riskTolerance && (
+                                <div className="text-sm">
+                                    <span className="text-green-600">✓</span> Risk tolerance assessed
+                                </div>
+                            )}
+                            {!extractedData.income?.length && (
+                                <div className="text-sm">
+                                    <span className="text-gray-400">○</span> No income data yet
+                                </div>
+                            )}
+                            {!extractedData.expenses?.length && (
+                                <div className="text-sm">
+                                    <span className="text-gray-400">○</span> No expense data yet
+                                </div>
+                            )}
+                            {!extractedData.goals?.length && (
+                                <div className="text-sm">
+                                    <span className="text-gray-400">○</span> No goals defined yet
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Raw Data Toggle */}
+                    <div>
+                        <button
+                            onClick={() => setShowRawData(!showRawData)}
+                            className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-800"
+                        >
+                            {showRawData ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            <span>{showRawData ? 'Hide' : 'Show'} Raw Data</span>
+                        </button>
+
+                        {showRawData && (
+                            <div className="mt-4 space-y-4">
+                                {/* Extracted Data */}
+                                <div className="bg-gray-900 rounded-lg p-4">
+                                    <h5 className="text-white font-medium mb-2">Extracted Data</h5>
+                                    <pre className="text-xs text-green-400 overflow-auto max-h-64">
+                                        {JSON.stringify(extractedData, null, 2)}
+                                    </pre>
+                                </div>
+
+                                {/* Debug Info */}
+                                {debugInfo && (
+                                    <div className="bg-blue-900 rounded-lg p-4">
+                                        <h5 className="text-white font-medium mb-2">Debug Info</h5>
+                                        <pre className="text-xs text-blue-300 overflow-auto">
+                                            {JSON.stringify(debugInfo, null, 2)}
+                                        </pre>
+                                    </div>
+                                )}
+
+                                {/* Recent Messages */}
+                                {messages.length > 0 && (
+                                    <div className="bg-purple-900 rounded-lg p-4">
+                                        <h5 className="text-white font-medium mb-2">Recent Messages</h5>
+                                        <div className="space-y-2 max-h-64 overflow-auto">
+                                            {messages.slice(-5).map((message, index) => (
+                                                <div key={index} className="text-xs">
+                                                    <span className={`font-medium ${message.type === 'user' ? 'text-yellow-400' : 'text-cyan-400'
+                                                        }`}>
+                                                        {message.type === 'user' ? 'User' : 'AI'}:
+                                                    </span>
+                                                    <span className="text-gray-300 ml-2">
+                                                        {typeof message.content === 'string'
+                                                            ? message.content.substring(0, 100) + (message.content.length > 100 ? '...' : '')
+                                                            : JSON.stringify(message.content)
+                                                        }
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        ))}
+                        )}
+                    </div>
+
+                    {/* Test Phrases */}
+                    <div className="bg-yellow-50 rounded-lg p-4">
+                        <h4 className="font-semibold text-yellow-800 mb-2">Test Data Extraction</h4>
+                        <p className="text-sm text-yellow-700 mb-3">
+                            Try these phrases to test the financial data extraction:
+                        </p>
+                        <div className="text-xs text-yellow-600 space-y-1">
+                            <div>"I earn £55k per year"</div>
+                            <div>"My rent is £1200 per month"</div>
+                            <div>"I want to buy a house in 3 years"</div>
+                            <div>"I'm a conservative investor"</div>
+                            <div>"I spend £2500 monthly on expenses"</div>
+                        </div>
                     </div>
                 </div>
-
-                <div className="bg-white p-3 rounded border">
-                    <h4 className="font-medium text-gray-900 mb-2">Extracted Data</h4>
-                    <div className="text-xs text-gray-600">
-                        <div>Income: {extractedData?.income?.length || 0} items</div>
-                        <div>Expenses: {extractedData?.expenses?.length || 0} items</div>
-                        <div>Goals: {extractedData?.goals?.length || 0} items</div>
-                        <div>Risk: {extractedData?.riskTolerance ? 'Set' : 'Not set'}</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Test Input */}
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Test Input:
-                </label>
-                <textarea
-                    value={testInput}
-                    onChange={(e) => setTestInput(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded text-sm"
-                    rows={2}
-                />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex space-x-2">
-                <button
-                    onClick={handleTestExtraction}
-                    className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                >
-                    Add as Chat Message
-                </button>
-                <button
-                    onClick={handleDirectTest}
-                    className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                >
-                    Test Direct Extraction
-                </button>
-                <button
-                    onClick={() => {
-                        console.log('Current messages:', messages);
-                        console.log('Current extracted data:', extractedData);
-                    }}
-                    className="px-3 py-1 bg-gray-600 text-white rounded text-sm hover:bg-gray-700"
-                >
-                    Log Current State
-                </button>
-            </div>
-
-            <div className="mt-3 text-xs text-yellow-700">
-                💡 This panel helps debug data extraction. Remove it in production.
-            </div>
+            )}
         </div>
     );
 };

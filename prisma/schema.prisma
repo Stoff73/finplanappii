@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  name             String?
+  completionScore  Int      @default(0)
+  createdAt        DateTime @default(now())
+  lastActive       DateTime @default(now())
+
+  // Existing relationships
+  messages         Message[]
+  goals            Goal[]
+  incomeItems      Income[]
+  expenses         Expense[]
+  assets           Asset[]
+  debts            Debt[]
+  riskProfile      RiskProfile?
+
+  // New goal-specific relationships
+  userGoals        UserGoal[]
+  goalProgress     GoalProgress[]
+
+  @@map("users")
+}
+
+// New UserGoal table to track active goals and their status
+model UserGoal {
+  id               String   @id @default(cuid())
+  userId           String
+  goalType         String   // 'retirement', 'saving', 'investment', 'protection', 'comprehensive'
+  goalLabel        String   // Display name like 'Retirement Planning'
+  status           String   @default("active") // 'active', 'completed', 'paused'
+  completionScore  Int      @default(0)
+  isCurrentGoal    Boolean  @default(false) // Only one goal can be current at a time
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  completedAt      DateTime?
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalProgress     GoalProgress[]
+
+  @@map("user_goals")
+}
+
+// Track progress for specific goal areas
+model GoalProgress {
+  id               String   @id @default(cuid())
+  userId           String
+  userGoalId       String
+  progressType     String   // 'income', 'expenses', 'risk', 'goals', 'assets', etc.
+  isComplete       Boolean  @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userGoal         UserGoal @relation(fields: [userGoalId], references: [id], onDelete: Cascade)
+
+  @@unique([userGoalId, progressType])
+  @@map("goal_progress")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  type      String
+  userId    String
+  goalId    String?  // Associate messages with specific goals
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Goal {
+  id          String    @id @default(cuid())
+  text        String
+  type        String    // JSON string of goal types
+  amounts     String?   // JSON string of amounts
+  timeframes  String?   // JSON string of timeframes
+  category    String    @default("goal")
+  userId      String
+  goalId      String?   // Link to UserGoal for goal-specific data
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  text        String
+  amount      Float
+  frequency   String   @default("yearly")
+  category    String   @default("income")
+  source      String?
+  userId      String
+  goalId      String?  // Link to UserGoal for goal-specific data
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("income")
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  text        String
+  amount      Float
+  frequency   String   @default("monthly")
+  category    String   @default("expense")
+  userId      String
+  goalId      String?  // Link to UserGoal for goal-specific data
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  text        String
+  amount      Float
+  type        String   @default("savings")
+  userId      String
+  goalId      String?  // Link to UserGoal for goal-specific data
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("assets")
+}
+
+model Debt {
+  id          String   @id @default(cuid())
+  text        String
+  amount      Float
+  type        String   @default("other")
+  userId      String
+  goalId      String?  // Link to UserGoal for goal-specific data
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("debts")
+}
+
+model RiskProfile {
+  id          String   @id @default(cuid())
+  text        String
+  level       String
+  userId      String   @unique
+  goalId      String?  // Link to UserGoal for goal-specific data
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("risk_profiles")
+}
