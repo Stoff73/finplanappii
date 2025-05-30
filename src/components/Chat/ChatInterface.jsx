@@ -13,6 +13,7 @@ const ChatInterface = () => {
     const [showGoalSelection, setShowGoalSelection] = useState(false);
     const [showFormOption, setShowFormOption] = useState(false);
     const [documentFile, setDocumentFile] = useState(null);
+    const [hasInitialized, setHasInitialized] = useState(false);
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -22,8 +23,13 @@ const ChatInterface = () => {
     };
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages, isTyping]);
+        // Only scroll to bottom if we have messages and the component has initialized
+        // Avoid scrolling on initial load
+        if (hasInitialized && messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [messages, isTyping, hasInitialized]);
+
 
     // Enhanced initial message with goal selection
     useEffect(() => {
